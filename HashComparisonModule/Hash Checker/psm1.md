@@ -1,23 +1,27 @@
 <#
 .SYNOPSIS
-This function, Compare-Hash, is designed to compare the SHA-512 hash of a file with a known hash value.
+    Compares a provided hash with the calculated hash of a file and displays the result in color-coded text.
 
 .DESCRIPTION
-The Compare-Hash function calculates the SHA-512 hash of a specified file and compares it to a provided known hash value. It is useful for verifying the integrity of files using cryptographic hashes.
+    This function calculates the hash of a file using a specified hash algorithm, compares it to a provided hash,
+    and displays the result in green (valid) or red (invalid) text. It also displays the provided and calculated hashes.
 
 .PARAMETER FilePath
-Specifies the path to the file for which you want to calculate the hash.
+    Specifies the path to the file you want to calculate the hash.
 
-.PARAMETER KnownHash
-Specifies the known SHA-512 hash value to compare with the calculated hash of the file.
+.PARAMETER ProvidedHash
+    Specifies the hash value to compare against the calculated hash of the file.
+
+.PARAMETER HashType
+    Specifies the hash algorithm to use. Valid values are "MD5," "SHA1," "SHA256," "SHA384," or "SHA512." The default is "SHA512."
 
 .EXAMPLE
-PS C:\> Compare-Hash -FilePath "C:\Path\To\Your\File.ext" -KnownHash "YourKnownSHA512HashHere"
+    Compare-Hash -FilePath "C:\Path\To\Your\File.txt" -ProvidedHash "YourProvidedHashHere"
+    This example calculates the SHA-512 hash of the specified file and compares it to the provided hash.
 
-.NOTES
-File Name: Compare-Hash.ps1
-Author: Your Name
-Copyright (c) 2023 Your Company. All rights reserved.
+.EXAMPLE
+    Compare-Hash -FilePath "C:\Path\To\Another\File.txt" -ProvidedHash "AnotherProvidedHash" -HashType "SHA256"
+    This example calculates the SHA-256 hash of a different file and compares it to the provided hash using the SHA-256 algorithm.
 #>
 
 function Compare-Hash {
@@ -27,18 +31,28 @@ function Compare-Hash {
         [string]$FilePath,
 
         [Parameter(Mandatory=$true)]
-        [string]$KnownHash
+        [string]$ProvidedHash,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("MD5", "SHA1", "SHA256", "SHA384", "SHA512")]
+        [string]$HashType = "SHA512"
     )
 
     process {
-        # Calculate the SHA-512 hash of the specified file
-        $hash = Get-FileHash -Algorithm SHA512 -Path $FilePath
+        # Calculate the specified hash type of the specified file.
+        $hash = Get-FileHash -Algorithm $HashType -Path $FilePath
 
-        # Compare the calculated hash with the provided known hash
-        if ($hash.Hash -eq $KnownHash) {
-            Write-Output "File is valid. The SHA-512 hash matches the known hash."
+        # Compare the calculated hash with the provided hash
+        if ($hash.Hash -eq $ProvidedHash) {
+            # Display the result in green if it is valid.
+            Write-Host "File is valid. The $($HashType) hash matches the provided hash." -ForegroundColor Green
         } else {
-            Write-Output "File is not valid. The SHA-512 hash does not match the known hash."
+            # Display the result in red if it is invalid.
+            Write-Host "File is not valid. The $($HashType) hash does not match the provided hash." -ForegroundColor Red
         }
+
+        # Print both the provided and calculated hash values in a formatted manner.
+        Write-Output "Provided Hash  : $ProvidedHash"
+        Write-Output "Calculated Hash: $($hash.Hash)"
     }
 }
