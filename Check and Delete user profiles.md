@@ -25,7 +25,7 @@ foreach ($Profile in $UserProfiles) {
 ```
 Get directory size of directories in current directory
 ```
-$UserDirectory = "C:\Users\mkirkby"  # Specify the user directory here
+$UserDirectory = "C:\"  # Specify the user directory here
 
 $Folders = Get-ChildItem -Path $UserDirectory -Directory -ErrorAction SilentlyContinue
 
@@ -33,8 +33,13 @@ if ($Folders.Count -gt 0) {
     foreach ($Folder in $Folders) {
         $FolderSize = Get-ChildItem -Path $Folder.FullName -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum
         if ($FolderSize -ne $null) {
-            $FolderSizeInMB = [math]::Round($FolderSize.Sum / 1MB, 2)
-            Write-Output "$($Folder.FullName) - Size: $FolderSizeInMB MB"
+            $FolderSizeInMB = $FolderSize.Sum / 1MB
+            $SizeSuffix = "MB"
+            if ($FolderSizeInMB -ge 1024) {
+                $FolderSizeInMB = $FolderSizeInMB / 1024
+                $SizeSuffix = "GB"
+            }
+            Write-Output "$($Folder.FullName) - Size: $($FolderSizeInMB.ToString('N2')) $SizeSuffix"
         } else {
             Write-Output "$($Folder.FullName) - Size: Unable to determine size"
         }
@@ -42,4 +47,5 @@ if ($Folders.Count -gt 0) {
 } else {
     Write-Output "No folders found in $UserDirectory"
 }
+
 ```
